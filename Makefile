@@ -1,6 +1,6 @@
 .PHONY: all
 
-all: start-services restore pull-embedder
+all: start-services restore pull-embedder embed
 
 start-services:
 	docker compose up -d
@@ -10,6 +10,9 @@ restore:
 
 pull-embedder:
 	docker exec -it ollama ollama pull nomic-embed-text
+
+embed:
+	go run scripts/ingest/main.go
 
 deep-clean:
 	docker compose down -v

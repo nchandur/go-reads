@@ -10,22 +10,24 @@ import (
 type Book struct {
 	DocID  primitive.ObjectID `json:"_id"`
 	Source string             `json:"source"`
-	Work   struct {
-		BookID  int      `json:"book_id"`
-		Title   string   `json:"title"`
-		Author  string   `json:"author"`
-		Summary string   `json:"summary"`
-		Genres  []string `json:"genres"`
-		Stars   float64  `json:"stars"`
-		Ratings int      `json:"ratings"`
-		Reviews int      `json:"reviews"`
-		Format  struct {
-			PageNo int    `json:"page_no"`
-			Type   string `json:"type"`
-		} `json:"format"`
-		Published time.Time `json:"published"`
-		Url       string    `json:"url"`
-	} `json:"work"`
+	Work   Work               `json:"work"`
+}
+
+type Work struct {
+	BookID  int      `json:"book_id"`
+	Title   string   `json:"title"`
+	Author  string   `json:"author"`
+	Summary string   `json:"summary"`
+	Genres  []string `json:"genres"`
+	Stars   float64  `json:"stars"`
+	Ratings int      `json:"ratings"`
+	Reviews int      `json:"reviews"`
+	Format  struct {
+		PageNo int    `json:"page_no"`
+		Type   string `json:"type"`
+	} `json:"format"`
+	Published time.Time `json:"published"`
+	Url       string    `json:"url"`
 }
 
 func (b *Book) Display() {
