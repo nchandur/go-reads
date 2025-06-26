@@ -14,6 +14,9 @@ pull-embedder:
 embed:
 	go run scripts/ingest/main.go
 
+scrape:
+	go run scripts/scrape/main.go
+
 deep-clean:
 	docker compose down -v
 
