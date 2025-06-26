@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math/rand/v2"
 	"os"
 	"time"
 
@@ -15,6 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
+// function to extract book data given a URL that contains a list of books (Goodreads)
 func main() {
 	pageURL := os.Args[1]
 
@@ -32,56 +32,58 @@ func main() {
 
 	defer db.Disconnect()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
-
-	defer cancel()
+	if err != nil {
+		errLog.Println(err)
+		return
+	}
 
 	links, err := scrape.FetchBookLinks(pageURL)
 
 	if err != nil {
-		errLog.Println(err)
+		errLog.Printf("error fetching links from %s", pageURL)
+		return
 	} else {
-		infoLog.Println("extracted links from list: ", pageURL)
+		infoLog.Printf("fetched links from %s", pageURL)
 	}
 
 	collection := db.Client.Database("books").Collection("works")
 
 	for idx, link := range links {
 
-		if idx == 5 {
-			break
-		}
+		book := scrape.FetchBookData(link, errLog)
+		book.Url = link
 
-		book, err := scrape.Fetch(link)
+		var doc models.Book
 
-		if err != nil {
-			errLog.Println(err)
-		}
-
-		book.Source = pageURL
-
+		doc.Source = pageURL
+		doc.Work = book
 		var exists models.Book
 
-		filter := bson.M{"work.bookid": book.Work.BookID}
+		filter := bson.M{"bookid": doc.Work.BookID}
 
-		err = collection.FindOne(ctx, filter).Decode(&exists)
+		err = collection.FindOne(context.Background(), filter).Decode(&exists)
 
 		if err == mongo.ErrNoDocuments {
-			_, insertErr := collection.InsertOne(ctx, book)
-			if insertErr != nil {
-				errLog.Printf("error inserting book %s: %v\n", book.Work.Title, insertErr)
-			} else {
-				infoLog.Printf("%s pushed to DB\n", book.Work.Title)
-			}
-		} else if err != nil {
-			errLog.Printf("error checking for existing book %s: %v\n", book.Work.Title, err)
-		} else {
-			infoLog.Printf("book %s already exists in DB. skipping insertion.\n", book.Work.Title)
-		}
-		time.Sleep(time.Duration(rand.IntN(10) + 5))
+			_, insertErr := collection.InsertOne(context.Background(), doc)
 
-		fmt.Printf("\r%d books processed.", idx+1)
+			if insertErr != nil {
+				errLog.Printf("error inserting book %s: %v\n", book.Title, err)
+			} else {
+				infoLog.Printf("%s pushed to DB\n", book.Title)
+			}
+
+		} else if err != nil {
+			errLog.Printf("error checking for existing book %s: %v\n", book.Title, err)
+		} else {
+			infoLog.Printf("book %s already exists in DB. skipping insertion.\n", book.Title)
+		}
+
+		time.Sleep(5 * time.Second)
+		fmt.Printf("\r%d books scraped", idx+1)
 
 	}
+
+	fmt.Println()
+	infoLog.Printf("extraction complete")
 
 }

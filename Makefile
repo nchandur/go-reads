@@ -19,6 +19,7 @@ scrape:
 
 deep-clean:
 	docker compose down -v
+	docker volume prune -a -f
 
 clean:
 	docker compose down

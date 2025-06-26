@@ -1,90 +1,113 @@
 package scrape
 
-import "github.com/nchandur/go-reads/internal/models"
+import (
+	"context"
+	"errors"
+	"fmt"
+	"log"
+	"strconv"
+	"time"
 
-func Fetch(url string) (models.Book, error) {
+	"github.com/go-rod/rod"
+	"github.com/nchandur/go-reads/internal/models"
+)
 
-	scraper, err := NewScraper(url)
-
-	if err != nil {
-		return models.Book{}, err
+// util function to safely retrieve the text in the given HTML tag
+func getTextFromSelector(page *rod.Page, selector string) (string, error) {
+	el, err := page.Timeout(25 * time.Second).Element(selector)
+	if err != nil || el == nil {
+		return "", fmt.Errorf("element not found")
 	}
+	text, _ := el.Text()
+	return text, nil
 
-	defer scraper.Page.Close()
-
-	var book models.Book
-
-	book.Work.Url = url
-
-	book.Work.BookID, err = scraper.getBookID(url)
-
-	if err != nil {
-		return models.Book{}, err
-	}
-
-	book.Work.Title, err = scraper.getTitle()
-
-	if err != nil {
-		return models.Book{}, err
-	}
-
-	book.Work.Author, err = scraper.getAuthor()
-
-	if err != nil {
-		return models.Book{}, err
-	}
-
-	book.Work.Summary, err = scraper.getSummary()
-
-	if err != nil {
-		return models.Book{}, err
-	}
-
-	book.Work.Genres, err = scraper.getGenres()
-
-	if err != nil {
-		return models.Book{}, err
-	}
-
-	book.Work.Stars, err = scraper.getStars()
-
-	if err != nil {
-		return models.Book{}, err
-	}
-
-	book.Work.Ratings, err = scraper.getRatings()
-
-	if err != nil {
-		return models.Book{}, err
-	}
-
-	book.Work.Reviews, err = scraper.getReviews()
-	if err != nil {
-		return models.Book{}, err
-	}
-
-	book.Work.Format, err = scraper.getFormat()
-	if err != nil {
-		return models.Book{}, err
-	}
-
-	book.Work.Published, err = scraper.getDate()
-
-	if err != nil {
-		return models.Book{}, err
-	}
-
-	return book, nil
 }
 
-func FetchBookLinks(url string) ([]string, error) {
-	scraper, err := NewScraper(url)
+// fetch data for the book in the given URL
+func FetchBookData(url string, errLog *log.Logger) models.Work {
+	page := rod.New().MustConnect().MustPage()
+	err := rod.Try(func() {
+		page.Timeout(25 * time.Second).MustNavigate(url)
+	})
+	if errors.Is(err, context.DeadlineExceeded) {
+		errLog.Printf("page timeout: %v", err)
+		return models.Work{}
+	}
+	defer page.Close()
+
+	page.MustWaitLoad()
+
+	var book models.Work
+
+	book.Url = url
+
+	book.BookID, err = getBookID(url)
 
 	if err != nil {
-		return nil, err
+		errLog.Printf("id not extracted: %v", err)
 	}
 
-	defer scraper.Page.Close()
+	book.Author, err = getTextFromSelector(page, `span[class="ContributorLink__name"]`)
 
-	return scraper.getBookLinks()
+	if err != nil {
+		errLog.Printf("author not extracted: %v", err)
+	}
+
+	book.Title, err = getTextFromSelector(page, `h1[data-testid="bookTitle"]`)
+
+	if err != nil {
+		book.Title = ""
+		errLog.Printf("title not extracted: %v", err)
+	}
+
+	book.Summary, err = extractSummary(page)
+
+	if err != nil {
+		errLog.Printf("summary not extracted: %v", err)
+	}
+
+	book.Genres, err = extractGenres(page)
+
+	if err != nil {
+		errLog.Printf("genres not extracted: %v", err)
+	}
+
+	stars, err := getTextFromSelector(page, `div.RatingStatistics__rating`)
+
+	if err != nil {
+		errLog.Printf("stars not extracted: %v", err)
+	} else {
+		book.Stars, err = strconv.ParseFloat(stars, 64)
+	}
+
+	if err != nil {
+		errLog.Printf("stars not extracted: %v", err)
+	}
+
+	book.Ratings, err = fetchRatings(page)
+
+	if err != nil {
+		errLog.Printf("ratings not extracted: %v", err)
+	}
+
+	book.Reviews, err = fetchReviews(page)
+
+	if err != nil {
+		errLog.Printf("reviews not extracted: %v", err)
+	}
+
+	book.Format, err = fetchFormat(page)
+
+	if err != nil {
+		errLog.Printf("format not extracted: %v", err)
+	}
+
+	book.Published, err = fetchDate(page)
+
+	if err != nil {
+		errLog.Printf("publication not extracted: %v", err)
+	}
+
+	return book
+
 }
