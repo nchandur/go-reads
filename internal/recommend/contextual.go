@@ -26,30 +26,8 @@ func RecommendByContext(contextString string, n int) ([]models.RecommendedBook, 
 	})
 
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
-	books := []models.RecommendedBook{}
-
-	for _, point := range points {
-
-		var book models.RecommendedBook
-
-		book.BookID = point.GetPayload()["book_id"].GetIntegerValue()
-		book.Title = point.GetPayload()["title"].GetStringValue()
-		book.Author = point.GetPayload()["author"].GetStringValue()
-		book.Summary = point.GetPayload()["summary"].GetStringValue()
-		book.Genres = point.GetPayload()["genres"].GetStringValue()
-		book.Stars = point.GetPayload()["stars"].GetDoubleValue()
-		book.Ratings = point.GetPayload()["ratings"].GetIntegerValue()
-		book.Reviews = point.GetPayload()["reviews"].GetIntegerValue()
-
-		book.Score = point.GetScore()
-
-		books = append(books, book)
-
-	}
-
-	return books, nil
-
+	return getDocs(points)
 }
