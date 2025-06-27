@@ -26,7 +26,7 @@ func createEmbedString(book models.Book) string {
 	return text
 }
 
-func searchBook(collection *mongo.Collection, title string) (models.Book, error) {
+func SearchBook(collection *mongo.Collection, title string) (models.Book, error) {
 	exactRegex := fmt.Sprintf("^%s$", regexp.QuoteMeta(title))
 	exactFilter := bson.M{
 		"work.title": bson.M{
@@ -65,7 +65,7 @@ func searchBook(collection *mongo.Collection, title string) (models.Book, error)
 func RecommendByTitle(title string, n int) ([]models.RecommendedBook, error) {
 	collection := db.Client.Database("books").Collection("works")
 
-	book, err := searchBook(collection, title)
+	book, err := SearchBook(collection, title)
 
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func RecommendByTitle(title string, n int) ([]models.RecommendedBook, error) {
 			{
 				ConditionOneOf: &qdrant.Condition_Field{
 					Field: &qdrant.FieldCondition{
-						Key: "book_id",
+						Key: "bookid",
 						Match: &qdrant.Match{
 							MatchValue: &qdrant.Match_Integer{Integer: int64(book.Work.BookID)},
 						},
@@ -91,7 +91,6 @@ func RecommendByTitle(title string, n int) ([]models.RecommendedBook, error) {
 			},
 		},
 	}
-
 
 	withPayload := &qdrant.WithPayloadSelector{
 		SelectorOptions: &qdrant.WithPayloadSelector_Enable{

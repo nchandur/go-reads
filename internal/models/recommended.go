@@ -3,7 +3,7 @@ package models
 import "fmt"
 
 type RecommendedBook struct {
-	BookID  int64   `json:"book_id"`
+	BookID  int64   `json:"bookid"`
 	Title   string  `json:"title"`
 	Author  string  `json:"author"`
 	Summary string  `json:"summary"`

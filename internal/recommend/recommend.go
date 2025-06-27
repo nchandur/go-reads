@@ -13,7 +13,7 @@ func getDocs(points []*qdrant.ScoredPoint) ([]models.RecommendedBook, error) {
 
 		var book models.RecommendedBook
 
-		book.BookID = point.GetPayload()["book_id"].GetIntegerValue()
+		book.BookID = point.GetPayload()["bookid"].GetIntegerValue()
 		book.Title = point.GetPayload()["title"].GetStringValue()
 		book.Author = point.GetPayload()["author"].GetStringValue()
 		book.Summary = point.GetPayload()["summary"].GetStringValue()

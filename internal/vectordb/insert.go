@@ -38,7 +38,7 @@ func InsertDoc(collection string, id uint64, book models.Book) error {
 				Id:      qdrant.NewIDNum(id),
 				Vectors: qdrant.NewVectors(vec...),
 				Payload: qdrant.NewValueMap(map[string]any{
-					"book_id": book.Work.BookID,
+					"bookid":  book.Work.BookID,
 					"title":   book.Work.Title,
 					"author":  book.Work.Author,
 					"summary": book.Work.Summary,
