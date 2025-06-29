@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/nchandur/go-reads/internal/db"
 	"github.com/nchandur/go-reads/internal/models"
@@ -46,6 +47,8 @@ func main() {
 
 	count := 0
 
+	start := time.Now()
+
 	for cur.Next(context.Background()) {
 		count++
 		var book models.Book
@@ -60,6 +63,6 @@ func main() {
 
 	}
 
-	fmt.Println()
+	fmt.Println("\nTime Taken for Embedding Books: ", time.Since(start))
 
 }

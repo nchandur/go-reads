@@ -5,16 +5,27 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/nchandur/go-reads/internal/db"
 	"github.com/nchandur/go-reads/internal/models"
+	"github.com/nchandur/go-reads/internal/ollama"
 	"github.com/nchandur/go-reads/internal/scrape"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-// function to extract book data given a URL that contains a list of books (Goodreads)
+func createEmbedString(book models.Book) string {
+	text := fmt.Sprintf("Title: %s\nAuthor: %s\nGenres: %v\nSummary: %s", book.Work.Title, book.Work.Author, book.Work.Genres, book.Work.Summary)
+
+	reg := regexp.MustCompile("[^a-zA-Z0-9_]+")
+
+	text = reg.ReplaceAllString(text, "")
+
+	return text
+}
+
 func main() {
 	pageURL := os.Args[1]
 
@@ -50,6 +61,10 @@ func main() {
 
 	for idx, link := range links {
 
+		if idx == 5 {
+			break
+		}
+
 		book := scrape.FetchBookData(link, errLog)
 		book.Url = link
 
@@ -57,6 +72,14 @@ func main() {
 
 		doc.Source = pageURL
 		doc.Work = book
+		embedStr := createEmbedString(doc)
+
+		doc.Embedding, err = ollama.Embed(embedStr)
+
+		if err != nil {
+			errLog.Printf("error embedding book: %v", err.Error())
+		}
+
 		var exists models.Book
 
 		filter := bson.M{"bookid": doc.Work.BookID}

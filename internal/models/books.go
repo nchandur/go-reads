@@ -6,8 +6,9 @@ import (
 )
 
 type Book struct {
-	Source string `json:"source"`
-	Work   Work   `json:"work"`
+	Source    string    `json:"source"`
+	Work      Work      `json:"work"`
+	Embedding []float32 `json:"embedding"`
 }
 
 type Work struct {
