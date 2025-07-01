@@ -8,7 +8,6 @@ import (
 
 	"github.com/nchandur/go-reads/internal/db"
 	"github.com/nchandur/go-reads/internal/models"
-	"github.com/nchandur/go-reads/internal/ollama"
 	"github.com/nchandur/go-reads/internal/vectordb"
 	"github.com/qdrant/go-client/qdrant"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -71,41 +70,13 @@ func RecommendByTitle(title string, n int) ([]models.RecommendedBook, error) {
 		return nil, err
 	}
 
-	vec, err := ollama.Embed(createEmbedString(book))
-
-	if err != nil {
-		return nil, err
-	}
-
-	filter := &qdrant.Filter{
-		Must: []*qdrant.Condition{
-			{
-				ConditionOneOf: &qdrant.Condition_Field{
-					Field: &qdrant.FieldCondition{
-						Key: "bookid",
-						Match: &qdrant.Match{
-							MatchValue: &qdrant.Match_Integer{Integer: int64(book.Work.BookID)},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	withPayload := &qdrant.WithPayloadSelector{
-		SelectorOptions: &qdrant.WithPayloadSelector_Enable{
-			Enable: true,
-		},
-	}
-
-	topK := uint64(n)
+	topK := uint64(n + 1)
 
 	points, err := vectordb.Client.Query(context.Background(), &qdrant.QueryPoints{
 		CollectionName: "books",
-		Query:          qdrant.NewQuery(vec...),
-		Filter:         filter,
+		Query:          qdrant.NewQuery(book.Embedding...),
 		Limit:          &topK,
-		WithPayload:    withPayload,
+		WithPayload:    qdrant.NewWithPayload(true),
 	})
 
 	if err != nil {

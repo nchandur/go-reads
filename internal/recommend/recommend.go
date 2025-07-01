@@ -28,5 +28,5 @@ func getDocs(points []*qdrant.ScoredPoint) ([]models.RecommendedBook, error) {
 
 	}
 
-	return books, nil
+	return books[1:], nil
 }

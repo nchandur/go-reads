@@ -58,7 +58,12 @@ func main() {
 			continue
 		}
 
-		vectordb.InsertDoc("books", uint64(count), book)
+		err = vectordb.InsertDoc("books", uint64(count), book)
+
+		if err != nil {
+			log.Println(err)
+		}
+
 		fmt.Printf("\r%d books processed.", count)
 
 	}

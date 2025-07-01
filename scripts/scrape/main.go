@@ -59,11 +59,9 @@ func main() {
 
 	collection := db.Client.Database("books").Collection("works")
 
-	for idx, link := range links {
+	start := time.Now()
 
-		if idx == 5 {
-			break
-		}
+	for idx, link := range links {
 
 		book := scrape.FetchBookData(link, errLog)
 		book.Url = link
@@ -108,5 +106,6 @@ func main() {
 
 	fmt.Println()
 	infoLog.Printf("extraction complete")
+	fmt.Println("Time Taken for extraction: ", time.Since(start))
 
 }

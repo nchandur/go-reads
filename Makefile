@@ -1,17 +1,13 @@
 .PHONY:
 
-all: start-services pull-embedder embed backup
+all: start-services restore preprocess embed
 
 start-services:
 	docker compose up -d
+	docker exec -it ollama ollama pull nomic-embed-text
 
 restore:
 	docker exec -it mongodb mongorestore --drop --nsInclude "books.*" /app/backup_data/
-	docker cp data/backup/qdrant_backup/. vectordb:/qdrant/data/
-
-
-pull-embedder:
-	docker exec -it ollama ollama pull nomic-embed-text
 
 embed:
 	go run scripts/ingest/main.go
@@ -25,10 +21,6 @@ deep-clean:
 
 clean:
 	docker compose down
-
-backup:
-	mongodump --host localhost --port 9001 --db books --out data/backup
-	sudo cp -r /var/lib/docker/volumes/goreads_qdrant_data/_data data/backup/qdrant_backup
 
 preprocess:
 	go run scripts/preprocess/main.go
