@@ -12,7 +12,7 @@ type Book struct {
 }
 
 type Work struct {
-	BookID    int       `json:"book_id"`
+	BookID    int       `json:"bookid" bson:"bookid"`
 	Title     string    `json:"title"`
 	Author    string    `json:"author"`
 	Summary   string    `json:"summary"`

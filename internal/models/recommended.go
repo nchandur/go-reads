@@ -17,3 +17,8 @@ type RecommendedBook struct {
 func (r *RecommendedBook) Display() {
 	fmt.Printf("Title: %s\nAuthor: %s\nSummary: %s\nGenres: %s\nStars: %f\nRatings: %d\nReviews: %d\nScore: %f\n", r.Title, r.Author, r.Summary, r.Genres, r.Stars, r.Ratings, r.Reviews, r.Score)
 }
+
+type RecommendedAuthor struct {
+	AuthorID               int     `json:"authorid" bson:"authorid"`
+	OverallSimilarityScore float64 `json:"score" bson:"overallSimilarityScore"`
+}

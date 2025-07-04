@@ -21,7 +21,7 @@ func SetUpRouter() *gin.Engine {
 
 	HelloHandler(r)
 	BookHandler(r)
-	RecommendHandler(r)
+	AuthorHandler(r)
 
 	return r
 }

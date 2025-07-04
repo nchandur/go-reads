@@ -14,9 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func Deduplicate() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
-	defer cancel()
+func Deduplicate(ctx context.Context) error {
 
 	collection := db.Client.Database("books").Collection("works")
 
@@ -74,10 +72,7 @@ func Deduplicate() error {
 	return nil
 }
 
-func Invalid() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
-
-	defer cancel()
+func Invalid(ctx context.Context) error {
 
 	collection := db.Client.Database("books").Collection("works")
 
@@ -141,6 +136,114 @@ func Invalid() error {
 	return nil
 }
 
+func uniqueGenres(genres []string) []string {
+	res := []string{}
+
+	hash := make(map[string]bool)
+
+	for _, genre := range genres {
+		hash[genre] = true
+	}
+
+	for key := range hash {
+		res = append(res, key)
+	}
+
+	return res
+}
+
+func MakeAuthorCollection(ctx context.Context) error {
+	collection := db.Client.Database("books").Collection("works")
+
+	pipeline := mongo.Pipeline{
+		{
+			{Key: "$sort", Value: bson.D{
+				{Key: "work.stars", Value: 1},
+				{Key: "work.ratings", Value: 1},
+				{Key: "work.reviews", Value: 1},
+			}},
+		},
+		{
+			{Key: "$group", Value: bson.D{
+				{Key: "_id", Value: "$work.author"},
+				{Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}},
+				{Key: "stars", Value: bson.D{{Key: "$avg", Value: "$work.stars"}}},
+				{Key: "reviews", Value: bson.D{{Key: "$avg", Value: "$work.reviews"}}},
+				{Key: "ratings", Value: bson.D{{Key: "$avg", Value: "$work.ratings"}}},
+				{Key: "bookids", Value: bson.D{{Key: "$push", Value: "$work.bookid"}}},
+				{Key: "temp_genres", Value: bson.D{{Key: "$push", Value: "$work.genres"}}},
+			}},
+		},
+		{
+			{Key: "$unwind", Value: "$temp_genres"},
+		},
+		{
+			{Key: "$unwind", Value: "$temp_genres"},
+		},
+		{
+			{Key: "$group", Value: bson.D{
+				{Key: "_id", Value: "$_id"},
+				{Key: "count", Value: bson.D{{Key: "$first", Value: "$count"}}},
+				{Key: "stars", Value: bson.D{{Key: "$first", Value: "$stars"}}},
+				{Key: "reviews", Value: bson.D{{Key: "$first", Value: "$reviews"}}},
+				{Key: "ratings", Value: bson.D{{Key: "$first", Value: "$ratings"}}},
+				{Key: "bookids", Value: bson.D{{Key: "$first", Value: "$bookids"}}},
+				{Key: "genres", Value: bson.D{{Key: "$addToSet", Value: "$temp_genres"}}},
+			}},
+		},
+		{
+			{Key: "$project", Value: bson.D{
+				{Key: "name", Value: "$_id"},
+				{Key: "count", Value: 1},
+				{Key: "stars", Value: bson.D{{Key: "$round", Value: bson.A{"$stars", 3}}}},
+				{Key: "reviews", Value: bson.D{{Key: "$round", Value: bson.A{"$reviews", 0}}}},
+				{Key: "ratings", Value: bson.D{{Key: "$round", Value: bson.A{"$ratings", 0}}}},
+				{Key: "books", Value: bson.D{{Key: "$slice", Value: bson.A{"$bookids", 5}}}},
+				{Key: "genres", Value: bson.D{{Key: "$slice", Value: bson.A{"$genres", 10}}}},
+				{Key: "_id", Value: 0},
+			}},
+		},
+		{
+			{Key: "$sort", Value: bson.D{{Key: "count", Value: -1}}},
+		},
+	}
+
+	cursor, err := collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return err
+	}
+	defer cursor.Close(context.TODO())
+
+	var authors []models.Author
+
+	count := 0
+	for cursor.Next(ctx) {
+		var author models.Author
+
+		err := cursor.Decode(&author)
+
+		if err != nil {
+			return err
+		}
+		count++
+		author.AuthorID = count
+		author.Genres = uniqueGenres(author.Genres)
+
+		authors = append(authors, author)
+
+	}
+
+	authorCollection := db.Client.Database("books").Collection("author")
+
+	_, err = authorCollection.InsertMany(ctx, authors)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func main() {
 	err := db.Connect()
 
@@ -154,11 +257,19 @@ func main() {
 		}
 	}()
 
-	if err := Invalid(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+	defer cancel()
+
+	if err := Invalid(ctx); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := Deduplicate(); err != nil {
+	if err := Deduplicate(ctx); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := MakeAuthorCollection(ctx); err != nil {
 		log.Fatal(err)
 	}
 
