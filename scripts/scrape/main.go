@@ -12,7 +12,7 @@ import (
 	"github.com/nchandur/go-reads/internal/models"
 	"github.com/nchandur/go-reads/internal/ollama"
 	"github.com/nchandur/go-reads/internal/scrape"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
@@ -27,6 +27,11 @@ func createEmbedString(book models.Book) string {
 }
 
 func main() {
+	timeoutDuration := 30 * time.Minute
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
+	defer cancel()
+
 	pageURL := os.Args[1]
 
 	logFile, err := os.OpenFile("data/extraction.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
@@ -44,17 +49,17 @@ func main() {
 	defer db.Disconnect()
 
 	if err != nil {
-		errLog.Println(err)
-		return
+		errLog.Println("Database connection error (if any occurred within db.Connect)")
+
 	}
 
 	links, err := scrape.FetchBookLinks(pageURL)
 
 	if err != nil {
-		errLog.Printf("error fetching links from %s", pageURL)
+		errLog.Printf("error fetching links from %s: %v", pageURL, err)
 		return
 	} else {
-		infoLog.Printf("fetched links from %s", pageURL)
+		infoLog.Printf("fetched %d links from %s", len(links), pageURL)
 	}
 
 	collection := db.Client.Database("books").Collection("works")
@@ -62,6 +67,18 @@ func main() {
 	start := time.Now()
 
 	for idx, link := range links {
+		select {
+		case <-ctx.Done():
+			if ctx.Err() == context.DeadlineExceeded {
+				infoLog.Printf("Timeout reached after %v. Exiting loop prematurely.", timeoutDuration)
+				fmt.Println("\nTimeout reached. Script exiting.")
+			} else {
+				infoLog.Printf("Context canceled for another reason. Exiting loop.")
+				fmt.Println("\nScript canceled. Exiting.")
+			}
+			goto endLoop
+		default:
+		}
 
 		book := scrape.FetchBookData(link, errLog)
 		book.Url = link
@@ -75,20 +92,20 @@ func main() {
 		doc.Embedding, err = ollama.Embed(embedStr)
 
 		if err != nil {
-			errLog.Printf("error embedding book: %v", err.Error())
+			errLog.Printf("error embedding book %s: %v", book.Title, err.Error())
 		}
 
 		var exists models.Book
 
 		filter := bson.M{"bookid": doc.Work.BookID}
 
-		err = collection.FindOne(context.Background(), filter).Decode(&exists)
+		err = collection.FindOne(ctx, filter).Decode(&exists)
 
 		if err == mongo.ErrNoDocuments {
-			_, insertErr := collection.InsertOne(context.Background(), doc)
+			_, insertErr := collection.InsertOne(ctx, doc)
 
 			if insertErr != nil {
-				errLog.Printf("error inserting book %s: %v\n", book.Title, err)
+				errLog.Printf("error inserting book %s: %v\n", book.Title, insertErr)
 			} else {
 				infoLog.Printf("%s pushed to DB\n", book.Title)
 			}
@@ -104,8 +121,8 @@ func main() {
 
 	}
 
+endLoop:
 	fmt.Println()
-	infoLog.Printf("extraction complete")
-	fmt.Println("Time Taken for extraction: ", time.Since(start))
-
+	infoLog.Printf("extraction complete or terminated after %v", time.Since(start))
+	fmt.Println("Total Time Elapsed: ", time.Since(start))
 }

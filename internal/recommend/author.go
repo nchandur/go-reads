@@ -59,9 +59,6 @@ func RecommendAuthor(ctx context.Context, collection *mongo.Collection, name str
 
 		bson.D{{Key: "$set", Value: bson.D{
 			{Key: "targetGenres", Value: author.Genres},
-			{Key: "targetStars", Value: author.AvgStars},
-			{Key: "targetRatings", Value: author.AvgRatings},
-			{Key: "targetReviews", Value: author.AvgReviews},
 		}}},
 
 		bson.D{{Key: "$match", Value: bson.D{
@@ -77,47 +74,14 @@ func RecommendAuthor(ctx context.Context, collection *mongo.Collection, name str
 		}}},
 
 		bson.D{{Key: "$addFields", Value: bson.D{
-			{Key: "starsScore", Value: bson.D{
-				{Key: "$subtract", Value: bson.A{
-					1,
-					bson.D{{Key: "$divide", Value: bson.A{
-						bson.D{{Key: "$abs", Value: bson.D{{Key: "$subtract", Value: bson.A{"$stars", "$targetStars"}}}}},
-						5.0,
-					}}},
-				}},
-			}},
-			{Key: "ratingsScore", Value: bson.D{
-				{Key: "$subtract", Value: bson.A{
-					1,
-					bson.D{{Key: "$divide", Value: bson.A{
-						bson.D{{Key: "$abs", Value: bson.D{{Key: "$subtract", Value: bson.A{"$ratings", "$targetRatings"}}}}},
-						bson.D{{Key: "$add", Value: bson.A{"$ratings", "$targetRatings"}}},
-					}}},
-				}},
-			}},
-			{Key: "reviewsScore", Value: bson.D{
-				{Key: "$subtract", Value: bson.A{
-					1,
-					bson.D{{Key: "$divide", Value: bson.A{
-						bson.D{{Key: "$abs", Value: bson.D{{Key: "$subtract", Value: bson.A{"$reviews", "$targetReviews"}}}}},
-						bson.D{{Key: "$add", Value: bson.A{"$reviews", "$targetReviews"}}},
-					}}},
-				}},
-			}},
-		}}},
-		bson.D{{Key: "$addFields", Value: bson.D{
 			{Key: "overallSimilarityScore", Value: bson.D{
 				{Key: "$sum", Value: bson.A{
-					bson.D{{Key: "$multiply", Value: bson.A{"$genreMatchCount", 0.6}}},
-					bson.D{{Key: "$multiply", Value: bson.A{"$starsScore", 0.1}}},
-					bson.D{{Key: "$multiply", Value: bson.A{"$ratingsScore", 0.25}}},
-					bson.D{{Key: "$multiply", Value: bson.A{"$reviewsScore", 0.05}}},
+					bson.D{{Key: "$multiply", Value: bson.A{"$genreMatchCount", 1.0}}},
 				}},
 			}},
 		}}},
 		bson.D{{Key: "$sort", Value: bson.D{
 			{Key: "overallSimilarityScore", Value: -1},
-			{Key: "starsScore", Value: -1},
 		}}},
 		bson.D{{Key: "$limit", Value: topK}},
 		bson.D{{Key: "$project", Value: bson.D{

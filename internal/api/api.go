@@ -22,6 +22,7 @@ func SetUpRouter() *gin.Engine {
 	HelloHandler(r)
 	BookHandler(r)
 	AuthorHandler(r)
+	GenreHandler(r)
 
 	return r
 }
