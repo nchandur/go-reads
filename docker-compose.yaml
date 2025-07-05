@@ -3,32 +3,48 @@ services:
     image: ollama/ollama:latest
     container_name: ollama
     ports:
-      - "9000:11434"
+      - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
   qdrant:
     image: qdrant/qdrant:latest
-    container_name: vectordb
+    container_name: qdrant
     ports:
       - "6333:6333"
       - "6334:6334"
     volumes:
       - qdrant_data:/qdrant/storage
-    restart: unless-stopped
-
   mongodb:
     image: mongo:latest
     container_name: mongodb
     ports:
-      - "9001:27017"
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: user
+      MONGO_INITDB_ROOT_PASSWORD: password
     volumes:
       - mongodb_data:/data/db
-      - ./data/backup:/app/backup_data
+      - ./data:/app/local_data
+  webapp:
+    build:
+      context: ./webapp
+      dockerfile: Dockerfile
+    container_name: go_webapp
+    ports:
+      - "8080:8080"
     environment:
-      - MONGO_INITDB_DATABASE=books
-    restart: unless-stopped
+      OLLAMA_API_URL: http://ollama:11434
+      QDRANT_API_URL: http://qdrant:6333
+      MONGO_DB_URI: mongodb://user:password@mongodb:27017
+
 
 volumes:
   ollama_data:

@@ -9,7 +9,7 @@ import (
 	"github.com/nchandur/go-reads/internal/db"
 	"github.com/nchandur/go-reads/internal/models"
 	"github.com/nchandur/go-reads/internal/vectordb"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func main() {

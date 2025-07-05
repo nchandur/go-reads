@@ -19,7 +19,7 @@ type EmbedResponse struct {
 }
 
 func Embed(text string) ([]float32, error) {
-	uri := "http://localhost:9000/api/embeddings"
+	uri := "http://ollama:11434/api/embeddings"
 
 	name := "nomic-embed-text"
 

@@ -1,26 +1,21 @@
 .PHONY:
 
-all: start-services restore preprocess embed
+up: start-services restore preprocess
 
 start-services:
-	docker compose up -d
+	docker compose up --build -d
 	docker exec -it ollama ollama pull nomic-embed-text
 
 restore:
-	docker exec -it mongodb mongorestore --drop --nsInclude "books.*" /app/backup_data/
+	docker exec -it mongodb mongorestore --authenticationDatabase admin -u user -p password --drop --db books /app/local_data/backup/books/
 
-embed:
-	go run scripts/ingest/main.go
-
-scrape:
-	go run scripts/scrape/main.go
-
-deep-clean:
-	docker compose down -v
-	docker volume prune -a -f
+preprocess:
+	docker exec -it go_webapp go run /app/scripts/preprocess/main.go
+	docker exec -it go_webapp go run /app/scripts/ingest/main.go
 
 clean:
 	docker compose down
 
-preprocess:
-	go run scripts/preprocess/main.go
+down:
+	docker compose down -v
+	docker volume prune -a -f

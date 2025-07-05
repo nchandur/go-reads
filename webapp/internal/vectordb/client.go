@@ -10,7 +10,7 @@ var Client *qdrant.Client
 
 func Connect() error {
 	client, err := qdrant.NewClient(&qdrant.Config{
-		Host: "localhost",
+		Host: "qdrant",
 		Port: 6334,
 	})
 
