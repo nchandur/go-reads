@@ -46,11 +46,7 @@ git clone https://github.com/nchandur/go-reads
 cd go-reads
 ```
 
-2. **Switch to `docker` branch**
-```{bash}
-git checkout docker
-```
-3. **Prepare the Data**
+2. **Prepare the Data**
 
 You'll need the data/ directory containing the most updated database. Please request this from me [Contact Me](https://nchandur.github.io/portfolio/). Once you have it, place this directory in the root of your project folder.
 
@@ -59,10 +55,10 @@ Your project structure should look something like this:
 ```
 .
 ├── data
-│   └── books
-│       ├── prelude.json
-│       ├── works.bson
-│       └── works.metadata.json
+│   └── books
+│       ├── prelude.json
+│       ├── works.bson
+│       └── works.metadata.json
 ├── docker-compose.yaml
 ├── Makefile
 ├── README.md
@@ -71,38 +67,36 @@ Your project structure should look something like this:
     ├── go.mod
     ├── go.sum
     ├── internal
-    │   ├── api
-    │   │   ├── author.go
-    │   │   ├── books.go
-    │   │   ├── genre.go
-    │   │   ├── health.go
-    │   │   ├── router.go
-    │   │   └── welcome.go
-    │   ├── db
-    │   │   ├── client.go
-    │   │   └── insert.go
-    │   ├── models
-    │   │   ├── author.go
-    │   │   ├── books.go
-    │   │   └── recommend.go
-    │   ├── ollama
-    │   │   └── ollama.go
-    │   ├── recommend
-    │   │   ├── author.go
-    │   │   ├── book.go
-    │   │   └── recommend.go
-    │   └── vectordb
-    │       ├── client.go
-    │       └── insert.go
+    │   ├── api
+    │   │   ├── author.go
+    │   │   ├── books.go
+    │   │   ├── genre.go
+    │   │   ├── health.go
+    │   │   ├── router.go
+    │   │   └── welcome.go
+    │   ├── db
+    │   │   ├── client.go
+    │   │   └── insert.go
+    │   ├── models
+    │   │   ├── author.go
+    │   │   ├── books.go
+    │   │   └── recommend.go
+    │   ├── recommend
+    │   │   ├── author.go
+    │   │   ├── book.go
+    │   │   └── recommend.go
+    │   └── vectordb
+    │       ├── client.go
+    │       └── insert.go
     ├── main.go
     └── scripts
         ├── ingest
-        │   └── main.go
+        │   └── main.go
         └── preprocess
             └── main.go
 ```
 
-4. **Configure Environment Variables**
+3. **Configure Environment Variables**
 
 Create a `.env` file in the root of your project directory by copying the example:
 
@@ -111,7 +105,7 @@ QDRANT_API_URL=http://qdrant:6333
 MONGO_DB_URI=mongodb://mongodb:27017
 ```
 
-5. **Start the Services**
+4. **Start the Services**
 
 Once your `data/` directory is in place and your `.env` file is configured, you can start all the services using Docker Compose:
 
