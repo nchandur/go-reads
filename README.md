@@ -63,37 +63,7 @@ Your project structure should look something like this:
 ├── Makefile
 ├── README.md
 └── webapp
-    ├── Dockerfile
-    ├── go.mod
-    ├── go.sum
-    ├── internal
-    │   ├── api
-    │   │   ├── author.go
-    │   │   ├── books.go
-    │   │   ├── genre.go
-    │   │   ├── health.go
-    │   │   ├── router.go
-    │   │   └── welcome.go
-    │   ├── db
-    │   │   ├── client.go
-    │   │   └── insert.go
-    │   ├── models
-    │   │   ├── author.go
-    │   │   ├── books.go
-    │   │   └── recommend.go
-    │   ├── recommend
-    │   │   ├── author.go
-    │   │   ├── book.go
-    │   │   └── recommend.go
-    │   └── vectordb
-    │       ├── client.go
-    │       └── insert.go
-    ├── main.go
-    └── scripts
-        ├── ingest
-        │   └── main.go
-        └── preprocess
-            └── main.go
+        ...
 ```
 
 3. **Configure Environment Variables**
