@@ -28,8 +28,8 @@ services:
     ports:
       - "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: user
-      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - mongodb_data:/data/db
       - ./data:/app/local_data
@@ -41,9 +41,11 @@ services:
     ports:
       - "8080:8080"
     environment:
-      OLLAMA_API_URL: http://ollama:11434
-      QDRANT_API_URL: http://qdrant:6333
-      MONGO_DB_URI: mongodb://user:password@mongodb:27017
+      OLLAMA_API_URL: ${OLLAMA_API_URL}
+      QDRANT_API_URL: ${QDRANT_API_URL}
+      MONGO_DB_URI: ${MONGO_DB_URI}
+      OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL}
+      OLLAMA_EMBEDDING_DIM: ${OLLAMA_EMBEDDING_DIM}
 
 
 volumes:

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -19,9 +20,10 @@ type EmbedResponse struct {
 }
 
 func Embed(text string) ([]float32, error) {
-	uri := "http://ollama:11434/api/embeddings"
+	base := os.Getenv("OLLAMA_API_URL")
+	uri := fmt.Sprintf("%s/api/embeddings", base)
 
-	name := "nomic-embed-text"
+	name := os.Getenv("OLLAMA_EMBEDDING_MODEL")
 
 	requestBody := EmbedRequest{
 		Model:  name,

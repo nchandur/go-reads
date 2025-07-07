@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"os"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -10,7 +11,8 @@ import (
 var Client *mongo.Client
 
 func Connect() error {
-	cli, err := mongo.Connect(options.Client().ApplyURI("mongodb://user:password@mongodb:27017"))
+	uri := os.Getenv("MONGO_DB_URI")
+	cli, err := mongo.Connect(options.Client().ApplyURI(uri))
 
 	if err != nil {
 		return err

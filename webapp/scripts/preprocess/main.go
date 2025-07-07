@@ -245,6 +245,7 @@ func MakeAuthorCollection(ctx context.Context) error {
 }
 
 func main() {
+
 	err := db.Connect()
 
 	if err != nil {

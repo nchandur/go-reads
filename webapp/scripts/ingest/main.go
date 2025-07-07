@@ -46,7 +46,7 @@ func main() {
 	}
 
 	count := 0
-
+	failed := 0
 	start := time.Now()
 
 	for cur.Next(context.Background()) {
@@ -54,20 +54,19 @@ func main() {
 		var book models.Book
 
 		if err = cur.Decode(&book); err != nil {
-			log.Println(err)
 			continue
 		}
 
 		err = vectordb.InsertDoc("books", uint64(count), book)
 
 		if err != nil {
-			log.Println(err)
+			failed++
 		}
 
 		fmt.Printf("\r%d books processed.", count)
 
 	}
 
-	fmt.Println("\nTime Taken for Embedding Books: ", time.Since(start))
+	fmt.Printf("\n%d books failed during ingestion\nTime Taken for Embedding Books: %v\n", failed, time.Since(start))
 
 }
