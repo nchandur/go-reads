@@ -5,7 +5,7 @@ up: start-services restore preprocess
 
 start-services:
 	docker compose up --build -d
-	docker exec -it ollama ollama pull ${OLLAMA_EMBEDDING_MODEL}
+	docker exec -it ollama ollama pull nomic-embed-text
 
 restore:
 	docker exec -it mongodb mongorestore --authenticationDatabase admin -u ${MONGO_INITDB_ROOT_USERNAME} -p ${MONGO_INITDB_ROOT_PASSWORD} --drop --db books /app/local_data/books/

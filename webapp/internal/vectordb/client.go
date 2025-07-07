@@ -2,8 +2,6 @@ package vectordb
 
 import (
 	"context"
-	"os"
-	"strconv"
 
 	"github.com/qdrant/go-client/qdrant"
 )
@@ -35,20 +33,11 @@ func Disconnect() error {
 }
 
 func CreateCollection(collection string) error {
-	dimStr := os.Getenv("OLLAMA_EMBEDDING_DIM")
 
-	dimInt, err := strconv.Atoi(dimStr)
-
-	if err != nil {
-		return err
-	}
-
-	dim := uint64(dimInt)
-
-	err = Client.CreateCollection(context.Background(), &qdrant.CreateCollection{
+	err := Client.CreateCollection(context.Background(), &qdrant.CreateCollection{
 		CollectionName: collection,
 		VectorsConfig: qdrant.NewVectorsConfig(&qdrant.VectorParams{
-			Size:     dim,
+			Size:     768,
 			Distance: qdrant.Distance_Cosine,
 		}),
 	})

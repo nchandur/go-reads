@@ -23,10 +23,8 @@ func Embed(text string) ([]float32, error) {
 	base := os.Getenv("OLLAMA_API_URL")
 	uri := fmt.Sprintf("%s/api/embeddings", base)
 
-	name := os.Getenv("OLLAMA_EMBEDDING_MODEL")
-
 	requestBody := EmbedRequest{
-		Model:  name,
+		Model:  "nomic-embed-text",
 		Prompt: text,
 	}
 
