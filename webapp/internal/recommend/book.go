@@ -8,7 +8,6 @@ import (
 
 	"github.com/nchandur/go-reads/internal/db"
 	"github.com/nchandur/go-reads/internal/models"
-	"github.com/nchandur/go-reads/internal/ollama"
 	"github.com/nchandur/go-reads/internal/vectordb"
 	"github.com/qdrant/go-client/qdrant"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -95,25 +94,25 @@ func RecommendByTitle(ctx context.Context, title string, n int) ([]models.Recomm
 
 }
 
-func RecommendByContext(ctx context.Context, contextString string, n int) ([]models.RecommendedBook, error) {
-	vec, err := ollama.Embed(contextString)
+// func RecommendByContext(ctx context.Context, contextString string, n int) ([]models.RecommendedBook, error) {
+// 	vec, err := ollama.Embed(contextString)
 
-	if err != nil {
-		return nil, err
-	}
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	topK := uint64(n)
+// 	topK := uint64(n)
 
-	points, err := vectordb.Client.Query(ctx, &qdrant.QueryPoints{
-		CollectionName: "books",
-		Query:          qdrant.NewQuery(vec...),
-		WithPayload:    qdrant.NewWithPayload(true),
-		Limit:          &topK,
-	})
+// 	points, err := vectordb.Client.Query(ctx, &qdrant.QueryPoints{
+// 		CollectionName: "books",
+// 		Query:          qdrant.NewQuery(vec...),
+// 		WithPayload:    qdrant.NewWithPayload(true),
+// 		Limit:          &topK,
+// 	})
 
-	if err != nil {
-		return nil, err
-	}
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return getDocs(points)
-}
+// 	return getDocs(points)
+// }

@@ -1,19 +1,4 @@
 services:
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-
   qdrant:
     image: qdrant/qdrant:latest
     container_name: qdrant
@@ -27,9 +12,6 @@ services:
     container_name: mongodb
     ports:
       - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - mongodb_data:/data/db
       - ./data:/app/local_data
@@ -41,12 +23,10 @@ services:
     ports:
       - "8080:8080"
     environment:
-      OLLAMA_API_URL: ${OLLAMA_API_URL}
       QDRANT_API_URL: ${QDRANT_API_URL}
       MONGO_DB_URI: ${MONGO_DB_URI}
 
 
 volumes:
-  ollama_data:
   qdrant_data:
   mongodb_data:
