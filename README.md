@@ -108,9 +108,7 @@ Create a `.env` file in the root of your project directory by copying the exampl
 
 ```
 QDRANT_API_URL=http://qdrant:6333
-MONGO_INITDB_ROOT_USERNAME=goreads
-MONGO_INITDB_ROOT_PASSWORD=recommend
-MONGO_DB_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017
+MONGO_DB_URI=mongodb://mongodb:27017
 ```
 
 5. **Start the Services**
@@ -306,4 +304,4 @@ To stop all services and completely remove all containers, networks, and volumes
 ```{bash}
 make clean
 ```
-Use make clean with caution, as it will permanently delete all data stored in your MongoDB and Qdrant volumes.
+Use `make clean` with caution, as it will permanently delete all data stored in your MongoDB and Qdrant volumes.
